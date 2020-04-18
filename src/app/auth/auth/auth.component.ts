@@ -5,6 +5,9 @@ import { Observable, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AlertComponent } from '../../shared/alert/alert.component'
 import { PlaceholderDirective } from 'src/app/shared/placeholder/placeholder.directive';
+import * as fromApp from '../../store/app.reducer'
+import * as AuthActions from '../store/auth.action'
+import { Store } from '@ngrx/store';
  
 @Component({
   selector: 'app-auth',
@@ -19,9 +22,17 @@ export class AuthComponent implements OnInit ,OnDestroy{
 
   private closeSub:Subscription;
 
-  constructor(private authService:AuthService,private route:Router, private commponentResolver:ComponentFactoryResolver) { }
+  constructor(
+    private authService:AuthService,
+    private route:Router,
+    private commponentResolver:ComponentFactoryResolver,
+    private store:Store<fromApp.Appstate>) { }
 
   ngOnInit() {
+    this.store.select('auth').subscribe(authState=>{
+      this.isLoading=authState.loading;
+      this.error=authState.authError;
+    })
   }
   onHandleError(){
     this.error=null
@@ -41,25 +52,26 @@ export class AuthComponent implements OnInit ,OnDestroy{
     // console.log(form.value);
     this.isLoading=true;
     if(this.isLoginMode){
-      authObs=this.authService.logIn(email,password)
+      this.store.dispatch(new AuthActions.LoginStart({email:email,password:password}));
+      // authObs=this.authService.logIn(email,password)
     }
     else{
       authObs=this.authService.signUp(email,password)
     }
 
-    authObs.subscribe(
-      response=>{
-        console.log(response);
-        this.isLoading=false;
-        this.route.navigate(['./recipes'])
-      },
-      errorMessage=>{
-        this.error=errorMessage
-        // console.log(errorRes)
-        this.showErrorAlert(errorMessage);
-        this.isLoading=false;
-      }
-    )
+  //   authObs.subscribe(
+  //     response=>{
+  //       console.log(response);
+  //       this.isLoading=false;
+  //       this.route.navigate(['./recipes'])
+  //     },
+  //     errorMessage=>{
+  //       this.error=errorMessage
+  //       // console.log(errorRes)
+  //       this.showErrorAlert(errorMessage);
+  //       this.isLoading=false;
+  //     }
+  //   )
 
     form.reset();
   }
