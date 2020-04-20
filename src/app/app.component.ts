@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { Store } from '@ngrx/store';
+import {isPlatformBrowser} from '@angular/common';
 
 import { AuthService } from './auth/auth.service';
 import * as fromApp from './store/app.reducer';
@@ -14,10 +15,13 @@ export class AppComponent implements OnInit {
   loadedFeature:string="recipe"
 
   constructor(
-      private store:Store<fromApp.Appstate>
+      private store:Store<fromApp.Appstate>,
+      @Inject(PLATFORM_ID) private Platformid
       ){}
 
   ngOnInit(){
-    this.store.dispatch(new AuthActions.AutoLogin());
+    if(isPlatformBrowser(this.Platformid)){
+      this.store.dispatch(new AuthActions.AutoLogin());
+    }
   }
 }
